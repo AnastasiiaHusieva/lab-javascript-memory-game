@@ -37,15 +37,44 @@ window.addEventListener('load', (event) => {
       </div>
     `;
   });
+  
 
   // Add all the divs to the HTML
   document.querySelector('#memory-board').innerHTML = html;
+  let canFlip = true
 
   // Bind the click event of each element to a function
   document.querySelectorAll('.card').forEach((card) => {
     card.addEventListener('click', () => {
-      // TODO: write some code here
-      console.log(`Card clicked: ${card}`);
+      if (!card.classList.contains('turned') && !card.classList.contains('blocked') && canFlip) {
+        card.classList.add('turned');
+        const cardName = card.getAttribute('data-card-name');
+        memoryGame.pickedCards.push(cardName);
+        if (memoryGame.pickedCards.length === 2) {
+          const [card1, card2] = memoryGame.pickedCards;
+          const isPair = memoryGame.checkIfPair(card1, card2);
+          if (!isPair) {
+            canFlip = false; // Disable flipping temporarily
+            setTimeout(() => {
+              const turnedCards = document.querySelectorAll('.card.turned');
+              turnedCards.forEach((turnedCard) => {
+                turnedCard.classList.remove('turned');
+              });
+              memoryGame.pickedCards = [];
+              canFlip = true; // Re-enable flipping after timeout
+            }, 1000);
+          } else {
+            const matchedCards = document.querySelectorAll(`.card[data-card-name="${card1}"]`);
+            matchedCards.forEach((matchedCard) => {
+              matchedCard.classList.add('blocked');
+            });
+            memoryGame.pickedCards = [];
+            if (memoryGame.checkIfFinished()) {
+              alert('Congratulations! You won the game!');
+            }
+          }
+        }
+      }
     });
   });
 });
